@@ -1,70 +1,55 @@
 {
   "variables": {
-    "vyos_release": "1.1.7",
+    "vyos_version": "1.1.7",
+    "ami_groups": "all",
     "subnet_id": "{{env `SUBNET_ID`}}",
-    "vpc_id": "{{env `VPC_ID`}}"
+    "vpc_id": "{{env `VPC_ID`}}",
+    "ubuntu_ami": "{{env `BASE_AMI`}}",
+    "aws_region": "{{env `REGION`}}"
   },
-  "builders": [{
-    "type": "amazon-ebs",
-    "region": "us-east-1",
-    "source_ami": "ami-72343365",
-    "subnet_id": "{{user `subnet_id`}}",
-    "vpc_id": "{{user `vpc_id`}}",
-    "associate_public_ip_address": true,
-    "instance_type": "t2.nano",
+  "builders": [
+  {
+    "type": "amazon-ebssurrogate",
+    "ami_name": "Packer-VyOS-{{user `vyos_version`}}",
+    "ami_description": "VyOS {{user `vyos_version`}} image build using Packer from official ISO (https://github.com/Luzifer/packer-vyos)",
+    "ami_groups": "{{user `ami_groups`}}",
+    "ami_virtualization_type": "hvm",
+    "region": "{{user `aws_region`}}",
     "ssh_username": "ubuntu",
-    "ssh_port": 122,
-    "ssh_timeout": "12m",
-    "ami_name": "VyOS-{{user `vyos_release`}} {{timestamp}}",
-    "ami_regions": [ "us-east-2", "us-west-2", "us-east-1" ],
-    "user_data_file": "./files/aws-user-data.sh",
+    "instance_type": "t2.medium",
+    "source_ami": "{{user `ubuntu_ami`}}",
+    "vpc_id": "{{user `vpc_id`}}",
+    "subnet_id": "{{user `subnet_id`}}",
+    "associate_public_ip_address": true,
     "launch_block_device_mappings": [
       {
-        "device_name": "/dev/sda1",
-        "volume_size": 8,
-        "delete_on_termination": true
-      },
-      {
-        "device_name": "/dev/sdf",
-        "volume_size": 8,
-        "delete_on_termination": true
+        "volume_type": "gp2",
+        "device_name": "/dev/xvdf",
+        "delete_on_termination": false,
+        "volume_size": 4
       }
     ],
-    "ami_block_device_mappings": [
-      {
-        "device_name": "/dev/sda1",
-        "volume_size": 8,
-        "delete_on_termination": true
-      },
-      {
-        "device_name": "/dev/sdf",
-        "volume_size": 0,
-        "virtual_name": "ephemeral0"
-      }
-    ]
-  }],
-  "provisioners": [
-    {
-      "type": "shell",
-      "inline": [
-        "mkdir -p /tmp/vyos-build"
-      ]
-    },
-    {
-      "type": "file",
-      "source": "./scripts",
-      "destination": "/tmp/vyos-build"
-    },
-    {
-      "type": "shell",
-      "inline_shebang": "/bin/bash",
-      "inline": [
-        "set -e",
-        "set -x",
-        "echo export VYOS_RELEASE={{user `vyos_release`}} > /tmp/vyos-build/scripts/vyos_release.sh",
-        "chmod +x /tmp/vyos-build/scripts/*.sh",
-        "sudo /tmp/vyos-build/scripts/build.sh"
-      ]
+    "ami_root_device": {
+      "source_device_name": "/dev/xvdf",
+      "device_name": "/dev/xvda",
+      "delete_on_termination": true,
+      "volume_size": 4,
+      "volume_type": "gp2"
     }
-  ]
+  }
+],
+"provisioners": [
+  {
+    "type": "file",
+    "source": "ec2-fetch-ssh-public-key",
+    "destination": "/tmp/ec2-fetch-ssh-public-key"
+  },
+  {
+    "type": "shell",
+    "script": "provision.sh",
+    "environment_vars": [
+      "VYOS_VERSION={{user `vyos_version`}}"
+    ]
+  }
+]
 }

@@ -13,3 +13,7 @@
 *.tfvars
 
 # End of https://www.gitignore.io/api/terraform
+
+#Packer
+vyos-image/run-packer
+packer.log

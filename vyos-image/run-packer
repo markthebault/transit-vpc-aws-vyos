@@ -1,16 +1,7 @@
-#!/bin/bash
-if [ -z "$VPC_ID" ]
-then
-  echo VPC_ID is missing >&2
-  exit 1
-fi
+export VPC_ID=vpc-fc70da9b
+export SUBNET_ID=subnet-22156a45
+export REGION=ap-southeast-1
+export BASE_AMI=ami-a55c1dd9
 
-if [ -z "$SUBNET_ID" ]
-then
-  echo SUBNET_ID is missing >&2
-  exit 1
-fi
-
-export VPC_ID SUBNET_ID
 packer build -debug -machine-readable packer.json | tee packer.log
 ./extract-ami-ids
