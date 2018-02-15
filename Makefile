@@ -1,8 +1,5 @@
 terraform:
-	cd terraform && \
-		terraform init && \
-		terraform apply
+	make --directory ./terraform-network all
 
 packer:
-	cd vyos-image && \
-		sh run-packer
+	make --directory ./vyos-image all

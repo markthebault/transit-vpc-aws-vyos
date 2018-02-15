@@ -5,15 +5,60 @@ module "vpc_1" {
   cidr = "10.232.0.0/20"
 
   azs             = ["${var.aws_region}a", "${var.aws_region}b"]
-  private_subnets = ["10.232.1.0/24", "10.232.2.0/24"]
+  #private_subnets = ["10.232.1.0/24", "10.232.2.0/24"]
   public_subnets  = ["10.232.11.0/24", "10.232.12.0/24"]
 
-  enable_nat_gateway = true
-  enable_vpn_gateway = false
+  enable_nat_gateway = false
+  enable_vpn_gateway = true
   enable_dns_hostnames = true
 
   tags = {
     Terraform = "true"
     Environment = "${var.environment}"
   }
+}
+
+resource "aws_customer_gateway" "vpc_1" {
+  bgp_asn    = 65001
+  ip_address = "${aws_instance.vyos_instance.public_ip}"
+  type       = "ipsec.1"
+
+  tags {
+    Name = "vpc-1-customer-gateway"
+    Environment = "${var.environment}"
+    Terraform = "true"
+  }
+}
+
+resource "aws_vpn_connection" "main" {
+  vpn_gateway_id      = "${module.vpc_1.vgw_id}"
+  customer_gateway_id = "${aws_customer_gateway.vpc_1.id}"
+  type                = "ipsec.1"
+  #static_routes_only  = true
+}
+
+
+resource "null_resource" "packer_script" {
+  triggers {
+    configuration = "${aws_vpn_connection.main.customer_gateway_configuration}"
+  }
+
+
+
+  provisioner "local-exec" {
+    command = "echo '${aws_vpn_connection.main.customer_gateway_configuration}' > vpc-1-vpn-config.vpn.xml"
+  }
+
+  provisioner "local-exec" {
+    command = "python ../tools/transform-vpn-xml-to-vyatta.py vpc-1-vpn-config.vpn.xml ../tools/vyatta.xsl > vpc-1-vpn-config.vyatta"
+  }
+
+  provisioner "local-exec" {
+    command = "python ../tools/vyos_config.py vpc-1-vpn-config.vyatta ${aws_instance.vyos_instance.private_ip} ${module.vpc_1.vpc_cidr_block} ${cidrhost(module.vpc_1.vpc_cidr_block, 1)} > vpc-1-vpn-config.vyos"
+  }
+
+  provisioner "local-exec" {
+    command = "rm vpc-1-vpn-config.vpn.xml && vpc-1-vpn-config.vyatta"
+  }
+
 }
