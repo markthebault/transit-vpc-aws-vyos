@@ -1,7 +1,8 @@
-export VPC_ID=vpc-fc70da9b
-export SUBNET_ID=subnet-22156a45
+export VPC_ID=vpc-ce9f2aa9
+export SUBNET_ID=subnet-a0fd82c7
 export REGION=ap-southeast-1
 export BASE_AMI=ami-a55c1dd9
 
 packer build -debug -machine-readable packer.json | tee packer.log
 ./extract-ami-ids
+

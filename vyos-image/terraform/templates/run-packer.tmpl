@@ -1,0 +1,7 @@
+export VPC_ID=${vpc_id}
+export SUBNET_ID=${public_sub_id}
+export REGION=${aws_region}
+export BASE_AMI=${vyos_base_ami}
+
+packer build -debug -machine-readable packer.json | tee packer.log
+./extract-ami-ids
