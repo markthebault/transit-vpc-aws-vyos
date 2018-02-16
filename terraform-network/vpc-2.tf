@@ -1,5 +1,5 @@
 module "vpc_2" {
- source = "terraform-aws-modules/vpc/aws"
+ source = "modules/vpc"
 
   name = "mth-transit-vpc-2"
   cidr = "10.146.0.0/20"
@@ -10,6 +10,7 @@ module "vpc_2" {
 
   enable_nat_gateway = false
   enable_vpn_gateway = true
+  vpn_gateway_amazon_side_asn = "65052"
   enable_dns_hostnames = true
 
   propagate_private_route_tables_vgw = true

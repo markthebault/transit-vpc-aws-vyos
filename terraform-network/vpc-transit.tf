@@ -30,20 +30,20 @@ resource "aws_customer_gateway" "vpc_transit_cgw" {
     Terraform = "true"
   }
 }
-
-
-resource "aws_route" "route_vpc_1" {
-  count = "${length(aws_instance.vyos_instance.id)}"
-
-  route_table_id            = "${element(module.vpc_transit.public_route_table_ids, count.index)}"
-  destination_cidr_block    = "10.232.0.0/20"
-  instance_id               = "${aws_instance.vyos_instance.id}"
-}
-
-resource "aws_route" "route_vpc_2" {
-  count = "${length(aws_instance.vyos_instance.id)}"
-
-  route_table_id            = "${element(module.vpc_transit.public_route_table_ids, count.index)}"
-  destination_cidr_block    = "10.146.0.0/20"
-  instance_id               = "${aws_instance.vyos_instance.id}"
-}
+#
+#
+# resource "aws_route" "route_vpc_1" {
+#   count = "${length(aws_instance.vyos_instance.id)}"
+#
+#   route_table_id            = "${element(module.vpc_transit.public_route_table_ids, count.index)}"
+#   destination_cidr_block    = "10.232.0.0/20"
+#   instance_id               = "${aws_instance.vyos_instance.id}"
+# }
+#
+# resource "aws_route" "route_vpc_2" {
+#   count = "${length(aws_instance.vyos_instance.id)}"
+#
+#   route_table_id            = "${element(module.vpc_transit.public_route_table_ids, count.index)}"
+#   destination_cidr_block    = "10.146.0.0/20"
+#   instance_id               = "${aws_instance.vyos_instance.id}"
+# }
