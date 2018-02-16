@@ -56,7 +56,7 @@ def create_script_file(config, local_IP, local_cidr, local_gateway):
             str_conf += (line)
     str_conf += ('set protocols static route {0} next-hop {1} distance 10\n' .format(local_cidr, local_gateway))
     str_conf += ('set protocols bgp {0} network {1}\n' .format(bgp, local_cidr))
-    str_conf += ('set vpn ipsec nat-traversal enable\ncommit\nsave\nexit\necho "Yes" | reboot\nexit')
+    str_conf += ('set vpn ipsec nat-traversal enable\ncommit\nsave\nexit\nexit')
     print(str_conf)
 
 if __name__ == '__main__':
