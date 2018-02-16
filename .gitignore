@@ -21,3 +21,8 @@ packer.log
 *.vpn.xml
 
 .tmp
+
+*.vyatta
+*.vyos
+
+vpn-generated-configurations/ssh-config

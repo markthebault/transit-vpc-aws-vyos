@@ -1,3 +1,11 @@
+resource "aws_eip" "vyos_instance" {
+}
+
+resource "aws_eip_association" "eip_assoc" {
+  instance_id   = "${aws_instance.vyos_instance.id}"
+  allocation_id = "${aws_eip.vyos_instance.id}"
+}
+
 resource "aws_instance" "vyos_instance" {
   ami           = "${var.ami_vyos}"
   instance_type = "${var.vyos_instance_type}"

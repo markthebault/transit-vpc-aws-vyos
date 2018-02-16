@@ -20,7 +20,7 @@ module "vpc_1" {
 
 resource "aws_customer_gateway" "vpc_1" {
   bgp_asn    = 65001
-  ip_address = "${aws_instance.vyos_instance.public_ip}"
+  ip_address = "${aws_eip.vyos_instance.public_ip}"
   type       = "ipsec.1"
 
   tags {
@@ -30,7 +30,7 @@ resource "aws_customer_gateway" "vpc_1" {
   }
 }
 
-resource "aws_vpn_connection" "main" {
+resource "aws_vpn_connection" "vpc_1_main" {
   vpn_gateway_id      = "${module.vpc_1.vgw_id}"
   customer_gateway_id = "${aws_customer_gateway.vpc_1.id}"
   type                = "ipsec.1"
@@ -38,15 +38,16 @@ resource "aws_vpn_connection" "main" {
 }
 
 
-resource "null_resource" "packer_script" {
+# Generate the VPN Configuration
+resource "null_resource" "vpc_1_generate_configuration" {
   triggers {
-    configuration = "${aws_vpn_connection.main.customer_gateway_configuration}"
+    configuration = "${aws_vpn_connection.vpc_1_main.customer_gateway_configuration}"
   }
 
 
 
   provisioner "local-exec" {
-    command = "echo '${aws_vpn_connection.main.customer_gateway_configuration}' > vpc-1-vpn-config.vpn.xml"
+    command = "echo '${aws_vpn_connection.vpc_1_main.customer_gateway_configuration}' > vpc-1-vpn-config.vpn.xml"
   }
 
   provisioner "local-exec" {
@@ -54,11 +55,11 @@ resource "null_resource" "packer_script" {
   }
 
   provisioner "local-exec" {
-    command = "python ../tools/vyos_config.py vpc-1-vpn-config.vyatta ${aws_instance.vyos_instance.private_ip} ${module.vpc_1.vpc_cidr_block} ${cidrhost(module.vpc_1.vpc_cidr_block, 1)} > vpc-1-vpn-config.vyos"
+    command = "python ../tools/vyos_config.py vpc-1-vpn-config.vyatta ${aws_instance.vyos_instance.private_ip} ${module.vpc_1.vpc_cidr_block} ${cidrhost(module.vpc_1.vpc_cidr_block, 1)} > ../vpn-generated-configurations/vpc-1-vpn-config.vyos"
   }
 
   provisioner "local-exec" {
-    command = "rm vpc-1-vpn-config.vpn.xml && vpc-1-vpn-config.vyatta"
+    command = "rm vpc-1-vpn-config.vpn.xml && rm vpc-1-vpn-config.vyatta"
   }
 
 }

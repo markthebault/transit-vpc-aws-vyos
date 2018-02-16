@@ -27,3 +27,11 @@ variable "vyos_instance_type" {
 variable "key_pair_public_path" {
   default = "~/.ssh/id_rsa.pub"
 }
+
+variable "key_pair_private_path" {
+  default = "~/.ssh/id_rsa"
+}
+
+variable "vyos_user" {
+  default = "vyos"
+}
