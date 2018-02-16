@@ -12,27 +12,21 @@ module "vpc_1" {
   enable_vpn_gateway = true
   enable_dns_hostnames = true
 
+  propagate_private_route_tables_vgw = true
+  propagate_public_route_tables_vgw = true
+
+
   tags = {
     Terraform = "true"
     Environment = "${var.environment}"
   }
 }
 
-resource "aws_customer_gateway" "vpc_1" {
-  bgp_asn    = 65001
-  ip_address = "${aws_eip.vyos_instance.public_ip}"
-  type       = "ipsec.1"
 
-  tags {
-    Name = "vpc-1-customer-gateway"
-    Environment = "${var.environment}"
-    Terraform = "true"
-  }
-}
 
 resource "aws_vpn_connection" "vpc_1_main" {
   vpn_gateway_id      = "${module.vpc_1.vgw_id}"
-  customer_gateway_id = "${aws_customer_gateway.vpc_1.id}"
+  customer_gateway_id = "${aws_customer_gateway.vpc_transit_cgw.id}"
   type                = "ipsec.1"
   #static_routes_only  = true
 }
@@ -42,6 +36,7 @@ resource "aws_vpn_connection" "vpc_1_main" {
 resource "null_resource" "vpc_1_generate_configuration" {
   triggers {
     configuration = "${aws_vpn_connection.vpc_1_main.customer_gateway_configuration}"
+    "test"="test"
   }
 
 

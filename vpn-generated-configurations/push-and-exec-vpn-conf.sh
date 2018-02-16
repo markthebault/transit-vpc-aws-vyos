@@ -1,6 +1,6 @@
 #!/bin/bash
 
-if [ $@ -ne 2 ]
+if [[ $@ -ne 2 ]] ;
 then
   echo "USAGE $0 SSH_CONF_FILE VPN_CONF_FILE"
   exit 1

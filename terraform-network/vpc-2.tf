@@ -12,6 +12,9 @@ module "vpc_2" {
   enable_vpn_gateway = true
   enable_dns_hostnames = true
 
+  propagate_private_route_tables_vgw = true
+  propagate_public_route_tables_vgw = true
+
   tags = {
     Terraform = "true"
     Environment = "${var.environment}"
@@ -20,21 +23,10 @@ module "vpc_2" {
 
 
 
-resource "aws_customer_gateway" "vpc_2" {
-  bgp_asn    = 65002
-  ip_address = "${aws_eip.vyos_instance.public_ip}"
-  type       = "ipsec.1"
-
-  tags {
-    Name = "vpc-2-customer-gateway"
-    Environment = "${var.environment}"
-    Terraform = "true"
-  }
-}
 
 resource "aws_vpn_connection" "vpn_2_main" {
   vpn_gateway_id      = "${module.vpc_2.vgw_id}"
-  customer_gateway_id = "${aws_customer_gateway.vpc_2.id}"
+  customer_gateway_id = "${aws_customer_gateway.vpc_transit_cgw.id}"
   type                = "ipsec.1"
   #static_routes_only  = true
 }
@@ -44,6 +36,7 @@ resource "aws_vpn_connection" "vpn_2_main" {
 resource "null_resource" "generate_vpc_2_conf" {
   triggers {
     configuration = "${aws_vpn_connection.vpn_2_main.customer_gateway_configuration}"
+    "test@"="test@"
   }
 
 
@@ -54,8 +47,9 @@ resource "null_resource" "generate_vpc_2_conf" {
 
   #/ ! \ sed added to Change the name of the interfaces to not use the same ones as the vpc-1
   #And chaneg the ipsec group
+  # | sed -e 's/vti0/vti2/p' -e 's/vti1/vti3/p' -e 's/AWS/AWS2/p'
   provisioner "local-exec" {
-    command = "python ../tools/transform-vpn-xml-to-vyatta.py vpc-2-vpn-config.vpn.xml ../tools/vyatta.xsl | sed -e 's/vti0/vti2/p' -e 's/vti1/vti3/p' -e 's/AWS/AWS2/p' > vpc-2-vpn-config.vyatta"
+    command = "python ../tools/transform-vpn-xml-to-vyatta.py vpc-2-vpn-config.vpn.xml ../tools/vyatta.xsl | sed -e 's/vti0/vti2/p' -e 's/vti1/vti3/p' > vpc-2-vpn-config.vyatta"
   }
 
 

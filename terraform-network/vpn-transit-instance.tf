@@ -17,6 +17,8 @@ resource "aws_instance" "vyos_instance" {
     Name = "vyos_instance"
     Terraform = "true"
     Environment = "${var.environment}"
+    Purpose = "try transitvpc"
+    Owner = "Mark thebault"
   }
 }
 
